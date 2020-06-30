@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <conio.h>
 #include <stdlib.h>
 #include <windows.h>
 #define MAX_SIZE 3
@@ -18,31 +17,37 @@ enum Menu
     SETTING = 4,
     EXIT = 5
 };
+typedef struct PLAYER
+{
+    char first_player[MAX];
+    char second_player[MAX];
+};
 void nhapMangCoGiaTri(int a[MAX_SIZE][MAX_SIZE], int n, int x);
 void nhapGiaTriTaiViTri(int a[MAX_SIZE][MAX_SIZE], int n, int i, int j, int x);
-void chonViTriDanh(int a[MAX_SIZE][MAX_SIZE], int n, int nguoidanh, char first_player[], char second_player[]);
+void chonViTriDanh(int a[MAX_SIZE][MAX_SIZE], int n, int nguoidanh, PLAYER *Player);
 void choiGame(int a[MAX_SIZE][MAX_SIZE], int n);
 void xuatMang(int a[MAX_SIZE][MAX_SIZE], int n);
 bool winGame(int a[MAX_SIZE][MAX_SIZE], int n, int nguoidanh, int &nguoithang);
 bool conViTriDanh(int a[MAX_SIZE][MAX_SIZE], int n);
-void datTenNguoiChoi(char first_player[], char second_player[]);
-void mainmenu(int a[MAX_SIZE][MAX_SIZE], int n, int &option, FILE *file, char str[MAX],FILE *f,char first_player[],char second_player[]);
-void historyGame(FILE *f,char first_player[],char second_player[]);
+void datTenNguoiChoi(PLAYER *Player);
+void mainmenu(int a[MAX_SIZE][MAX_SIZE], int n, int &option, FILE *file, char str[MAX], FILE *f, PLAYER *Player);
+void historyGame(FILE *f, PLAYER *Player);
 void tutorialGame(FILE *file, char str[MAX]);
 void readfile(FILE *file, char str[MAX], char *filename);
-void savehistory(FILE *f,char first_player[],char second_player[]);
+void savehistory(FILE *f, PLAYER *Player);
 void Color(int ForgC, int BackC);
 void SettingGame();
+
 int main()
 {
     FILE *file;
-    FILE *f;
-    char first_player[MAX], second_player[MAX];
+    PLAYER *Player = (struct PLAYER *)malloc(100 * sizeof(struct PLAYER));
     char str[MAX];
+    FILE *f;
     int option;
     int a[MAX_SIZE][MAX_SIZE];
     int n = MAX_SIZE;
-    mainmenu(a, n, option, file,str,f,first_player,second_player);
+    mainmenu(a, n, option, file, str, f, Player);
     return 0;
 }
 void nhapMangCoGiaTri(int a[MAX_SIZE][MAX_SIZE], int n, int x) // nhap mang 3 3
@@ -51,7 +56,6 @@ void nhapMangCoGiaTri(int a[MAX_SIZE][MAX_SIZE], int n, int x) // nhap mang 3 3
     {
         for (int j = 0; j < n; j++)
         {
-
             a[i][j] = x;
         }
     }
@@ -71,15 +75,15 @@ void xuatMang(int a[MAX_SIZE][MAX_SIZE], int n)
         {
             if (a[i][j] == fIRST_PLAYER)
             {
-                printf("X ");
+                printf(" X  ");
             }
             else if (a[i][j] == SECOND_PLAYER)
             {
-                printf("O ");
+                printf(" O  ");
             }
             else
             {
-                printf("_ ");
+                printf("__  ");
             }
         }
         printf("\n");
@@ -105,7 +109,7 @@ bool winGame(int a[MAX_SIZE][MAX_SIZE], int n, int nguoidanh, int &nguoithang)
     {
         win = true;
     }
-    else if ((a[2][0] == a[1][10]) && (a[2][0] == a[0][2]) && (a[2][0] != NO_PLAYER))
+    else if ((a[2][0] == a[1][1]) && (a[2][0] == a[0][2]) && (a[2][0] != NO_PLAYER))
     {
         win = true;
     }
@@ -115,20 +119,19 @@ bool winGame(int a[MAX_SIZE][MAX_SIZE], int n, int nguoidanh, int &nguoithang)
     }
     return win;
 }
-void chonViTriDanh(int a[MAX_SIZE][MAX_SIZE], int n, int nguoidanh, char first_player[], char second_player[])
+void chonViTriDanh(int a[MAX_SIZE][MAX_SIZE], int n, int nguoidanh, PLAYER *Player)
 {
     int hang, cot;
     do
     {
         if (nguoidanh == fIRST_PLAYER)
         {
-            printf("=>%s danh:\n", first_player);
+            printf("=>%s danh:\n", Player->first_player);
         }
         else
         {
-            printf("=>%s danh:\n", second_player);
+            printf("=>%s danh:\n", Player->second_player);
         }
-
         printf(" \n=>Hang: ");
         scanf("%d", &hang);
         printf("\n=>Cot: ");
@@ -142,15 +145,14 @@ void chonViTriDanh(int a[MAX_SIZE][MAX_SIZE], int n, int nguoidanh, char first_p
     nhapGiaTriTaiViTri(a, n, hang, cot, nguoidanh);
     xuatMang(a, n);
 }
-void choiGame(int a[MAX_SIZE][MAX_SIZE], int n)
+void choiGame(int a[MAX_SIZE][MAX_SIZE], int n, PLAYER *Player)
 {
     // xuat bang chua danh
     int x = 0;
     int nguoithang = NO_PLAYER;
     int nguoidanh;
     int nguoichoitruoc;
-    char first_player[100], second_player[100];
-    datTenNguoiChoi(first_player, second_player);
+    datTenNguoiChoi(Player);
     nhapMangCoGiaTri(a, n, x);
     xuatMang(a, n);
     // choi game
@@ -160,19 +162,19 @@ void choiGame(int a[MAX_SIZE][MAX_SIZE], int n)
     {
         if (!conViTriDanh(a, n)) // da hoa
         {
-            printf("Hoa!\n");
+            printf("=>Hoa!\n");
         }
         else // khong hoa
         {
             if (nguoidanh == fIRST_PLAYER)
             {
-                chonViTriDanh(a, n, nguoidanh, first_player, second_player);
+                chonViTriDanh(a, n, nguoidanh, Player);
                 nguoichoitruoc = nguoidanh;
                 nguoidanh = SECOND_PLAYER;
             }
             else
             {
-                chonViTriDanh(a, n, nguoidanh, first_player, second_player);
+                chonViTriDanh(a, n, nguoidanh, Player);
                 nguoichoitruoc = nguoidanh;
                 nguoidanh = fIRST_PLAYER;
             }
@@ -180,11 +182,11 @@ void choiGame(int a[MAX_SIZE][MAX_SIZE], int n)
     }
     if (nguoithang == fIRST_PLAYER)
     {
-        printf("\n=> Nguoi Thang: %s\n", first_player);
+        printf("\n=> Nguoi Thang: %s\n", Player->first_player);
     }
     else
     {
-        printf("\n=>Nguoi Thang: %s\n", second_player);
+        printf("\n=>Nguoi Thang: %s\n", Player->second_player);
     }
 }
 bool conViTriDanh(int a[MAX_SIZE][MAX_SIZE], int n)
@@ -192,6 +194,7 @@ bool conViTriDanh(int a[MAX_SIZE][MAX_SIZE], int n)
     int dem = 9;
     for (int i = 0; i < n; i++)
     {
+
         for (int j = 0; j < n; j++)
         {
             if ((a[i][j] == fIRST_PLAYER) || (a[i][j] == SECOND_PLAYER))
@@ -202,20 +205,20 @@ bool conViTriDanh(int a[MAX_SIZE][MAX_SIZE], int n)
     }
     return dem != 0; // neu dem ==0 thi het vi tri de danh
 }
-void datTenNguoiChoi(char first_player[], char second_player[])
+void datTenNguoiChoi(PLAYER *Player)
 {
     fflush(stdin);
     printf("Ten nguoi choi 1: ");
-    gets(first_player);
-    // tiếp tục, em viết đi
+    gets(Player->first_player);
     printf("\nTen nguoi choi 2: ");
-    gets(second_player);
+    gets(Player->second_player);
 }
-void mainmenu(int a[MAX_SIZE][MAX_SIZE], int n, int &option, FILE *file, char str[MAX],FILE *f,char first_player[],char second_player[])
+void mainmenu(int a[MAX_SIZE][MAX_SIZE], int n, int &option, FILE *file, char str[MAX], FILE *f, PLAYER *Player)
 {
     do
     {
-        printf("--------------------------------------------------------------------\n");
+
+        printf("\n--------------------------------------------------------------------\n");
         printf("---------------------------GAME XO ---------------------------------\n");
         printf("---------------------------1. Play game  ---------------------------\n");
         printf("---------------------------2. history    ---------------------------\n");
@@ -228,10 +231,10 @@ void mainmenu(int a[MAX_SIZE][MAX_SIZE], int n, int &option, FILE *file, char st
         switch (option)
         {
         case PLAY_GAME:
-            choiGame(a, n);
+            choiGame(a, n, Player);
             break;
         case HISTORY_GAME:
-            historyGame(f,first_player,second_player);
+            historyGame(f, Player);
             break;
         case HELP:
             tutorialGame(file, str);
@@ -243,9 +246,9 @@ void mainmenu(int a[MAX_SIZE][MAX_SIZE], int n, int &option, FILE *file, char st
         }
     } while (option != 5);
 }
-void historyGame(FILE *f,char first_player[],char second_player[])
+void historyGame(FILE *f, PLAYER *Player)
 {
-    savehistory(f,first_player,second_player);
+    savehistory(f, Player);
 }
 void tutorialGame(FILE *file, char str[MAX])
 {
@@ -264,18 +267,15 @@ void readfile(FILE *file, char str[MAX], char *filename)
         printf("%s", str);
     fclose(file);
 }
-void savehistory(FILE *f,char first_player[],char second_player[])
+void savehistory(FILE *f, PLAYER *Player)
 {
-    f = fopen("lichsu.txt", "w");
-    if (f == NULL)
-    {
-        printf("\n Khong doc duoc file ");
-        exit(1);
-    }
-    else
-    {
-        fprintf(f,"%s  %s",first_player,second_player);
-    }
+    f = fopen("lichsu.txt", "a+"); // cho phep doc va ghi .tu tao file
+    printf("|------------- Lich su choi ----------|\n");
+    fprintf(f, " %s and %s  ", Player->first_player, Player->second_player); // ghi file
+    fclose(f);
+    fscanf(f, "\t %s and %s", Player->first_player, Player->second_player); //xuat
+    printf("|              %s and %s            |\n", Player->first_player, Player->second_player);
+    printf("|-------------------------------------|\n");
     fclose(f);
 }
 void Color(int ForgC, int BackC)
@@ -301,6 +301,7 @@ void SettingGame()
     printf("\n 1.Mau den ");
     printf("\n 2.Mau trang ");
     printf("\n 3.Mau xam ");
+    printf("\n 4.Mau xanh duong");
     printf("\n =>Chon mau man hinh:");
     scanf("%d", &mau);
     if (mau == 2)
@@ -311,4 +312,8 @@ void SettingGame()
     {
         Color(0, 7);
     }
+    else
+    {
+        Color(0,27);
+    }   
 }
