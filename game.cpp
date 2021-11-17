@@ -312,5 +312,10 @@ void SettingGame()
     {
         Color(0, 7);
     }
+    else
+    {
+        Color(0,27);
+    }   
+    
     
 }
